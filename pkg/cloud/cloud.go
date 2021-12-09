@@ -333,6 +333,9 @@ func (c *cloud) CreateDisk(ctx context.Context, volumeName string, diskOptions *
 		throughput int64
 		err        error
 	)
+
+	extraTags := c.GetTcTags(volumeName)
+
 	capacityGiB := util.BytesToGiB(diskOptions.CapacityBytes)
 
 	switch diskOptions.VolumeType {
@@ -366,6 +369,11 @@ func (c *cloud) CreateDisk(ctx context.Context, volumeName string, diskOptions *
 		copiedValue := value
 		tags = append(tags, &ec2.Tag{Key: &copiedKey, Value: &copiedValue})
 	}
+
+	for key, value := range extraTags {
+		tags = append(tags, &ec2.Tag{Key: &key, Value: &value})
+	}
+
 	tagSpec := ec2.TagSpecification{
 		ResourceType: aws.String("volume"),
 		Tags:         tags,

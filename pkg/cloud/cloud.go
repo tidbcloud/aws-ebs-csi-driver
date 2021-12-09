@@ -22,6 +22,11 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	pingcapv1alpha1 "github.com/pingcap/tidb-operator/pkg/client/clientset/versioned/typed/pingcap/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"os"
 	"strings"
 	"time"
@@ -265,6 +270,60 @@ func newEC2Cloud(region string, awsSdkDebugLog bool) (Cloud, error) {
 		dm:     dm.NewDeviceManager(),
 		ec2:    svc,
 	}, nil
+}
+
+func (c *cloud) GetTcTags(volumeName string) map[string]string {
+	res := map[string]string{}
+
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return res
+	}
+	// creates the clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return res
+	}
+
+	pcclient, err := pingcapv1alpha1.NewForConfig(config)
+	if err != nil {
+		return res
+	}
+
+	pvList ,err := clientset.CoreV1().PersistentVolumes().List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		return res
+	}
+
+	thePv := corev1.PersistentVolume{}
+	for _, pv := range pvList.Items {
+		if pv.Name == volumeName {
+			thePv = pv
+			break
+		}
+	}
+
+	if thePv.Name == "" {
+		return res
+	}
+
+	if thePv.Labels["tidb.pingcap.com/cluster-id"] != "" {
+		clusterNs := thePv.Labels["tidb.pingcap.com/cluster-id"]
+		dbCluster, err := pcclient.TidbClusters(clusterNs).Get("db", metav1.GetOptions{})
+		if err != nil {
+			return res
+		}
+
+		res["component"] = thePv.Labels["app.kubernetes.io/component"]
+		res["servicetype"] = "dedicated"
+		res["usedby"] = "Customer-TiDB"
+		res["cluster"] = dbCluster.Labels["cluster"]
+		res["project"] = dbCluster.Labels["project"]
+		res["tenant"] = dbCluster.Labels["tenant"]
+		res["environment"] = dbCluster.Labels["environment"]
+	}
+
+	return res
 }
 
 func (c *cloud) CreateDisk(ctx context.Context, volumeName string, diskOptions *DiskOptions) (*Disk, error) {

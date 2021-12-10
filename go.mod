@@ -3,16 +3,15 @@ module github.com/kubernetes-sigs/aws-ebs-csi-driver
 require (
 	github.com/aws/aws-sdk-go v1.35.37
 	github.com/container-storage-interface/spec v1.2.0
+	github.com/coreos/bbolt v0.0.0-00010101000000-000000000000 // indirect
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
-	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
-	github.com/elazarl/goproxy v0.0.0-20181111060418-2ce16c963a8a // indirect
 	github.com/golang/mock v1.4.1
 	github.com/golang/protobuf v1.3.3
 	github.com/kubernetes-csi/csi-test v2.0.0+incompatible
 	github.com/kubernetes-csi/external-snapshotter/v2 v2.0.1
-	github.com/onsi/ginkgo v1.10.2
+	github.com/onsi/ginkgo v1.10.3
 	github.com/onsi/gomega v1.7.0
-	github.com/tmc/grpc-websocket-proxy v0.0.0-20171017195756-830351dc03c6 // indirect
+	github.com/pingcap/tidb-operator v1.2.4
 	golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f
 	google.golang.org/grpc v1.26.0
 	k8s.io/api v0.17.3
@@ -25,6 +24,8 @@ require (
 )
 
 replace (
+	github.com/coreos/bbolt => go.etcd.io/bbolt v1.3.6
+	github.com/uber-go/atomic => go.uber.org/atomic v1.5.0
 	k8s.io/api => k8s.io/api v0.17.3
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.17.3
 	k8s.io/apimachinery => k8s.io/apimachinery v0.17.4-beta.0
